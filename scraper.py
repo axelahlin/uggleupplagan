@@ -13,7 +13,7 @@ ERROR = "-1"
 
 # for some reason, nfba and nfbb start with 0013 instead of 0017, we will do these manually. 
 
-url_range_b = 'cdefghijklmnopqrst'
+url_range_b = 'abcdefghijklmnopqrst'
 url_range_c = 'abcdefghijklmn'
 
 url_base = "http://runeberg.org/nf" 
@@ -23,12 +23,12 @@ OK = "200 OK"
 
 def scrape():
 
+    filename = "b.txt"
     artNo = 13 
-    special_url_a = url_base + 'b' + 'a' + '/' + '00' + str(artNo) + suffix
+    special_url_a = url_base + 'b' + 'b' + '/' + '00' + str(artNo) + suffix
     page = urlopen(special_url_a)
     text = ""
-    print(page.status)
-    with open(FILENAME, 'w') as f:
+    with open(filename, 'w') as f:
         while (page.status == 200):
             print(artNo)
             html=page.read().decode("utf-8")
@@ -43,7 +43,19 @@ def scrape():
             page = urlopen(special_url_a)
 
 
+def scrape():
+
+    filename = "master.txt"
+    URL = "http://runeberg.org/download.pl?mode=ocrtext&work=nf"
+    text = ""
+    with open(filename, 'w') as f:
         
+        for pre in ('b', 'c'):
+            for c in url_range_b:
+                url = URL + pre + c
+                page = urlopen(url)
+                f.write(page.read().decode('utf-8'))
+            
 
 def get_url():
     pass
