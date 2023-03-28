@@ -4,7 +4,7 @@ from urllib.request import urlopen
 DELIM_BEGIN = "<!-- mode=normal -->"
 DELIM_END = "<!-- NEWIMAGE2 -->"
 
-FILENAME = 'encyclopedia.txt'
+FILENAME = 'sammanfattning.txt'
 ERROR = "-1"
 
 # Example format:
@@ -20,24 +20,30 @@ url_base = "http://runeberg.org/nf"
 suffix = '.html'
 
 OK = "200 OK"
+
 def scrape():
 
     artNo = 13 
     special_url_a = url_base + 'b' + 'a' + '/' + '00' + str(artNo) + suffix
     page = urlopen(special_url_a)
-    html = page.read().decode("utf-8")
-
-    while (html.status() == OK):
-        artNo += 1
-        if(artNo < 100):
-            special_url_a = url_base + 'b' + 'a' + '/' + '00' + str(artNo) + suffix
-        else:
-            special_url_a = url_base + 'b' + 'a' + '/' + '0' + str(artNo) + suffix
-        text += get_text(html)
-        print(text)
-
+    text = ""
+    print(page.status)
     with open(FILENAME, 'w') as f:
-        f.write(text)
+        while (page.status == 200):
+            print(artNo)
+            html=page.read().decode("utf-8")
+            artNo += 1
+            if(artNo < 100):
+                special_url_a = url_base + 'b' + 'a' + '/' + '00' + str(artNo) + suffix
+            else:
+                special_url_a = url_base + 'b' + 'a' + '/' + '0' + str(artNo) + suffix
+
+            text = get_text(html)
+            f.write(text)
+            page = urlopen(special_url_a)
+
+
+        
 
 def get_url():
     pass
