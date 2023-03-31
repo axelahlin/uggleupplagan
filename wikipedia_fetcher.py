@@ -10,7 +10,9 @@ def get_text(query):
     # Get the Wikipedia page object
     page = wikipedia.page(page_title)
 
+    result = wikipedia.summary("India", sentences = 2)
+
     page_text = re.sub(r'\n', '', page.content)
 
-    return page_text
+    return result#page_text
    
