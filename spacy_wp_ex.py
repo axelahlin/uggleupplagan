@@ -15,9 +15,9 @@ for ent in doc.ents:
         print(ent.text)
 
 
-cities = []
-countries = []
-other_places = []
+cities = set() #set or list?
+countries = set()
+other_places = set()
 import wikipedia
 for text in gpe:
     summary = None
