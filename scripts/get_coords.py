@@ -1,11 +1,8 @@
 from SPARQLWrapper import SPARQLWrapper, JSON
 
 def get_coords(qid):
-
-    # specify the endpoint URL for Wikidata
     endpoint_url = "https://query.wikidata.org/sparql"
 
-    # specify the SPARQL query
     query = """
     PREFIX  schema: <http://schema.org/>
     PREFIX  bd:   <http://www.bigdata.com/rdf#>
@@ -30,21 +27,15 @@ def get_coords(qid):
     # create a new SPARQLWrapper object and set the query and endpoint URL
     sparql = SPARQLWrapper(endpoint_url)
     sparql.setQuery(query)
-
-    # set the return format to JSON
     sparql.setReturnFormat(JSON)
 
-    # execute the query and get the results
     try:
         results = sparql.query().convert()
     except Exception as e:
         print("Error:", e)
         exit()
 
-    # check if the result is not empty
     if results["results"]["bindings"]:
-        # extract the latitude and longitude values from the results
-
         point = results["results"]["bindings"][0]["coords"]["value"]
 
         import re

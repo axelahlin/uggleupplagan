@@ -7,7 +7,9 @@ def tag_remover(data):
     return p.sub('', data)
 
 
-f = open("nfbb.txt",'r')
+
+#work in progress, not functional
+f = open("nfbc.txt",'r')
 xs = f.read().encode().decode('utf-8').split('<b>')
 data = []
 
