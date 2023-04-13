@@ -1,6 +1,8 @@
 import json
 import csv
 
+#script for writing json to csv
+
 # Load JSON file
 with open('200_manual.json', 'r') as f:
     data = json.load(f)

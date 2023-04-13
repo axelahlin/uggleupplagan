@@ -1,5 +1,8 @@
 import json
 
+#script for keeping track of how many articles that have been annotated
+
+
 with open('200_manual.json', 'r') as f:
     data = json.load(f)
 

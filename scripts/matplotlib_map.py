@@ -7,7 +7,7 @@ ELMHOOD = wikidata_query.get_qid("Älmhult")
 cs = gs.get_coords(ELMHOOD)
 
 
-# define the coordinates you want to plot
+# dummy coordinates
 lons = [40.7128, -74.0060, 139.6503, 35.6895, 6.083788]  # longitude values
 lats = [74.0059, 40.7128, 35.6762, 139.6917, 50.776207]  # latitude values
 

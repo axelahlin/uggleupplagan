@@ -55,6 +55,3 @@ def get_coords(qid):
     else:
         print("No coordinates found for Q-ID:", qid)
         return None
-
-
-get_coords('Q1017')

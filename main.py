@@ -7,7 +7,7 @@ def main():
         print("Encyclopedia in nf.txt already exists, skipping text_scraper.py")
     else:
         print("Running text_scraper.py to create encyclopedia in nf.txt")
-        subprocess.call(["python", "text_scraper.py"])
+        subprocess.call(["python3", "scripts/text_scraper.py"])
 
     # check if model exists, otherwise train by loading (manually) annotated articles and running tf-idf vectorizer for place
 

@@ -1,13 +1,16 @@
-import spacy
-nlp = spacy.load('sv_core_news_lg')
+import spacy,os 
+nlp = spacy.load('sv_core_news_lg')#sv_core_news_lg')en_core_web_sm
 
 gpe = [] # countries, cities, states
 loc = [] # non gpe locations, mountain ranges, bodies of water
 
 nlp.max_length = 5000000
-doc = nlp(open('subtitle.txt').read())
+
+file_path = os.path.abspath('/home/axel/Code/edan70-project/data/geotext.txt')
+with open(file_path) as file:
+    doc = nlp(file.read())
 for ent in doc.ents:
-    print(ent)
+    print(ent.label_)
     if (ent.label_ == 'GPE'):
         gpe.append(ent.text)
     elif (ent.label_ == 'LOC'):
@@ -19,20 +22,20 @@ cities = set() #set or list?
 countries = set()
 other_places = set()
 import wikipedia
-for text in gpe:
+for text in loc:
     summary = None
     try:
-        summary = str(wikipedia.summary(text))
+        summary = str(wikipedia.summary(text))[:100]
     except:
         print("Not found in wikipedia: " + text)
     
     if summary is not None:
         if ('city' in summary):
-            cities.append(text)
+            cities.add(text)
         elif ('country' in summary):
-            countries.append(text)
+            countries.add(text)
         else:
-            other_places.append(text)
+            other_places.add(text)
 
 for text in loc:
-    other_places.append(text)
+    other_places.add(text)
