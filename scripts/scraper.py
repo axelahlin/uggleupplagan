@@ -4,7 +4,7 @@ from urllib.request import urlopen
 DELIM_BEGIN = "<!-- mode=normal -->"
 DELIM_END = "<!-- NEWIMAGE2 -->"
 
-FILENAME = 'encyclopedia.txt'
+FILENAME = 'sammanfattning.txt'
 ERROR = "-1"
 
 # Example format:
@@ -13,31 +13,49 @@ ERROR = "-1"
 
 # for some reason, nfba and nfbb start with 0013 instead of 0017, we will do these manually. 
 
-url_range_b = 'cdefghijklmnopqrst'
+url_range_b = 'abcdefghijklmnopqrst'
 url_range_c = 'abcdefghijklmn'
 
 url_base = "http://runeberg.org/nf" 
 suffix = '.html'
 
 OK = "200 OK"
+
 def scrape():
 
+    filename = "b.txt"
     artNo = 13 
-    special_url_a = url_base + 'b' + 'a' + '/' + '00' + str(artNo) + suffix
+    special_url_a = url_base + 'b' + 'b' + '/' + '00' + str(artNo) + suffix
     page = urlopen(special_url_a)
-    html = page.read().decode("utf-8")
+    text = ""
+    with open(filename, 'w') as f:
+        while (page.status == 200):
+            print(artNo)
+            html=page.read().decode("utf-8")
+            artNo += 1
+            if(artNo < 100):
+                special_url_a = url_base + 'b' + 'a' + '/' + '00' + str(artNo) + suffix
+            else:
+                special_url_a = url_base + 'b' + 'a' + '/' + '0' + str(artNo) + suffix
 
-    while (html.status() == OK):
-        artNo += 1
-        if(artNo < 100):
-            special_url_a = url_base + 'b' + 'a' + '/' + '00' + str(artNo) + suffix
-        else:
-            special_url_a = url_base + 'b' + 'a' + '/' + '0' + str(artNo) + suffix
-        text += get_text(html)
-        print(text)
+            text = get_text(html)
+            f.write(text)
+            page = urlopen(special_url_a)
 
-    with open(FILENAME, 'w') as f:
-        f.write(text)
+
+def scrape():
+
+    filename = "master.txt"
+    URL = "http://runeberg.org/download.pl?mode=ocrtext&work=nf"
+    text = ""
+    with open(filename, 'w') as f:
+        
+        for pre in ('b', 'c'):
+            for c in url_range_b:
+                url = URL + pre + c
+                page = urlopen(url)
+                f.write(page.read().decode('utf-8'))
+            
 
 def get_url():
     pass
