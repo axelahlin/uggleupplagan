@@ -1,7 +1,12 @@
 from SPARQLWrapper import SPARQLWrapper, JSON
 
+
 def get_coords(qid):
     endpoint_url = "https://query.wikidata.org/sparql"
+
+    print(qid)
+
+    # loop through articles if p625 is missing, if none set q0
 
     query = """
     PREFIX  schema: <http://schema.org/>
@@ -15,8 +20,7 @@ def get_coords(qid):
                 schema:inLanguage  "en" ;
                 schema:isPartOf    <https://en.wikipedia.org/>
         FILTER ( ?item = <http://www.wikidata.org/entity/"""+qid+"""> )
-        OPTIONAL
-        { ?item  wdt:P625  ?DR }
+        ?item  wdt:P625  ?DR 
         SERVICE wikibase:label
         { bd:serviceParam
                     wikibase:language  "en"
@@ -35,13 +39,20 @@ def get_coords(qid):
         print("Error:", e)
         exit()
 
-    if results["results"]["bindings"]:
+    if "coords" in results["results"]["bindings"][0]:
         point = results["results"]["bindings"][0]["coords"]["value"]
 
         import re
         regex = r"[^\d\s.]"  # match anything that's not a digit or whitespace
-        result = [float(x) for x in re.sub(regex, "", point).split(" ")]  # remove everything that matches the regex  
-        print("Point:", result)
+        # remove everything that matches the regex
+
+        if (point.startswith('http')):
+            print("URL returned. Point: " + point)
+            # This needs to be revised
+            return None
+
+        result = [float(x) for x in re.sub(regex, "", point).split(" ")]
+
         return result
     else:
         print("No coordinates found for Q-ID:", qid)
