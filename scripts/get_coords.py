@@ -4,8 +4,6 @@ from SPARQLWrapper import SPARQLWrapper, JSON
 def get_coords(qid):
     endpoint_url = "https://query.wikidata.org/sparql"
 
-    print(qid)
-
     # loop through articles if p625 is missing, if none set q0
 
     query = """

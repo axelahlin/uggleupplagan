@@ -4,6 +4,7 @@ import get_coords as gs
 import wikidata_query
 import json
 
+import time
 # dummy list of places, connect to annotator later
 FILENAME_IN = "json_dump.json"
 FILENAME_OUT = "coords.csv"
@@ -15,12 +16,13 @@ def get_and_save_coords():
         with open(FILENAME_IN, encoding='utf-8') as i:
             js = json.load(i)
 
-            for j in js[:500]:
+            for j in js[:250]:
                 if j['qid']:
                     coordinates = gs.get_coords(j['qid'])
                     if coordinates:
                         o.write(str(coordinates[0]) +
                                 "," + str(coordinates[1]) + '\n')
+                    time.sleep(0.1)
 
 
 def map_coords(filename=FILENAME_OUT):
@@ -47,5 +49,5 @@ def map_coords(filename=FILENAME_OUT):
 
 
 if __name__ == "__main__":
-    get_and_save_coords()
+    # get_and_save_coords()
     map_coords()
