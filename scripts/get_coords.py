@@ -26,8 +26,9 @@ def get_coords(qid):
     }
     """
 
-    # create a new SPARQLWrapper object and set the query and endpoint URL
-    sparql = SPARQLWrapper(endpoint_url)
+    # create a new SPARQLWrapper object and set the query and endpoint URLd
+    user_agent = 'NLP project; ax5047ah-s@student.lu.se al5247my-s@student.lu.se)'
+    sparql = SPARQLWrapper(endpoint_url, agent=user_agent)
     sparql.setQuery(query)
     sparql.setReturnFormat(JSON)
 
