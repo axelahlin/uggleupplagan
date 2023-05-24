@@ -4,6 +4,9 @@ import get_coords as gs
 import wikidata_query
 import json
 
+import plotly.graph_objects as go
+import plotly.express as px
+import pandas as pd
 import time
 # dummy list of places, connect to annotator later
 FILENAME_IN = "annotated.json"
@@ -21,7 +24,7 @@ def get_and_save_coords():
 
             with open(FILENAME_IN, encoding='utf-8') as i:
                 js = json.load(i)
-
+                o.write("lons,lats,texts")
                 for j in js:
                     if j['is_loc'] and j['qid']:
 
@@ -33,9 +36,11 @@ def get_and_save_coords():
                         #         continue
 
                         coordinates = gs.get_coords(j['qid'])
+                        text = j['text']
                         if coordinates:
+
                             o.write(str(coordinates[0]) +
-                                    "," + str(coordinates[1]) + '\n')
+                                    "," + str(coordinates[1]) + "," + text + '\n')
                         else:
                             # SETS THE IS_LOC TO FALSE TO PURGE ALL ENTRIES WITHOUT COORDINATES.
                             j['is_loc'] = False
@@ -49,7 +54,19 @@ def get_and_save_coords():
     print(f"{fails=}")
 
 
-def map_coords(filename=FILENAME_OUT_CSV):
+def twod_map_coords(filename=FILENAME_OUT_CSV):
+
+    df = pd.read_csv(filename)
+    # if you are passing just one lat and lon, put it within "[]"
+    # editing the marker
+    fig = px.scatter_geo(df, lat="lats", lon="lons", projection="natural earth", opacity=0.3
+                         )
+    fig.show()
+    fig.write_html("2d_plot.html")
+    fig.show()
+
+
+def threed_map_coords(filename=FILENAME_OUT_CSV):
 
     lons, lats = [], []
 
@@ -57,21 +74,26 @@ def map_coords(filename=FILENAME_OUT_CSV):
         for line in f.readlines():
             lon, lat = line.split(',')
 
-            lat = lat[:-1]
+            # print(lon, lat)
             lons.append(float(lon))
             lats.append(float(lat))
 
     print(f"Successful coords: {len(lons)}")
 
-    map = Basemap()
-    map.drawcoastlines(linewidth=0.5)
-    map.drawcountries(linewidth=0.5)
-    map.fillcontinents(color='lightgray', lake_color='white')
-    x, y = map(lons, lats)
-    map.plot(x, y, 'bo', markersize=6)
-    plt.show()
+    # if you are passing just one lat and lon, put it within "[]"
+    # editing the marker
+    fig = go.Figure(go.Scattergeo(lat=lats, lon=lons))
+    # this projection_type = 'orthographic is the projection which return 3d globe map'
+    fig.update_traces(marker={"opacity": 0.4, 'size': 5, "color": "blue"})
+    # layout, exporting html and showing the plot
+    fig.update_geos(projection_type="orthographic")
+    fig.update_layout(width=800, height=800, margin={
+                      "r": 0, "t": 0, "l": 0, "b": 0})
+    fig.write_html("3d_plot.html")
+    fig.show()
 
 
 if __name__ == "__main__":
-    get_and_save_coords()
-    # map_coords()
+    # get_and_save_coords()
+    twod_map_coords()
+    # threed_map_coords()

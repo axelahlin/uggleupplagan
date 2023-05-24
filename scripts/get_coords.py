@@ -41,7 +41,7 @@ WHERE
         point = results["results"]["bindings"][0]["coords"]["value"]
 
         import re
-        regex = r"[^\d\s.]"  # match anything that's not a digit or whitespace
+        regex = r"[^-\d\s.]"  # match anything that's not a digit or whitespace
         # remove everything that matches the regex
 
         if (point.startswith('http')):
@@ -84,5 +84,5 @@ def get_coords_raw(qid):
         return result
     else:
         print("No coordinates found for Q-ID:", qid)
-        print(results)
+        # print(results)
         return None
