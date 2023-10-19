@@ -21,7 +21,7 @@ suffix = '.html'
 
 OK = "200 OK"
 
-def scrape():
+def scrape(config):
 
     filename = "b.txt"
     artNo = 13 
@@ -57,9 +57,6 @@ def scrape():
                 f.write(page.read().decode('utf-8'))
             
 
-def get_url():
-    pass
-
 def get_text(html):
 
     
@@ -69,7 +66,3 @@ def get_text(html):
     text= html[start_index:end_index]
 
     return text
-
-
-if __name__ == "__main__":
-    scrape()

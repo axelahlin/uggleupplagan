@@ -1,0 +1,39 @@
+[
+    {   
+        "debug": true,
+        "scraping": {
+            "website": "https://runeberg.org/nf",
+            "output_file": "data/json/nf_scraped.json"
+        },
+
+        "classifier": {
+            "model_pickle_file": "model.pkl",
+            "classifier_data": "data/clean_data_classifier.csv",
+            "pickle_model": false,
+            "input_file": "data/json/nf_scraped.json",
+            "output_file_locations": "data/json/nf_locations.json",
+            "output_file_nonlocations": "data/json/nf_nonlocations.json"
+        },
+
+        "evaluation": {
+            "model_path": "model.pth",
+            "data_path": "data.csv",
+            "gpu": true
+        },
+
+        "annotator": {
+            "input_file": "data/json/nf_locations.json",
+            "output_json_file": "data/json/nf_pipeline_complete2.json",
+            "intermediate_json_filepath": "",
+            "transformer_model": "all-MiniLM-L6-v2",
+            "endpoint_url": "https://query.wikidata.org/sparql",
+            "user_agent": "NLP project; ax5047ah-s@student.lu.se al5247my-s@student.lu.se)",
+            "max_candidates": 5
+        },
+
+        "visualization": {
+            "data_file": "data/json/nf_pipeline_complete.json",
+            "output_image": "data/maps/visualization.png"
+        }
+    }
+]

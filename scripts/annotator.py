@@ -1,79 +1,157 @@
 import re
+from SPARQLWrapper import SPARQLWrapper, JSON
 import json
-import wikidata_query
-from kbbert import is_LOC
+import math
+import scripts.helpers.kbbert as kbb
+from sentence_transformers import SentenceTransformer, util
 
 
-def tag_remover(data):
-    p = re.compile(r'<.*?>')
-    return p.sub('', data).replace("\n", " ")
+def cosine_sim(sentence1, sentence2, model):
+    embeddings1 = model.encode(sentence1, convert_to_tensor=True)
+    embeddings2 = model.encode(sentence2, convert_to_tensor=True)
+    return util.cos_sim(embeddings1, embeddings2)
 
 
-def first_sentence(text):
-    # todo implement
-    pass
+def point_extract(point):
+    regex = r"[^-\d\s.]"  # match anything that's not a digit or whitespace
+    # remove everything that matches the regex
+
+    if point.startswith("http"):
+        print("URL returned. Point: " + point)
+        # This needs to be revised
+        return [-91.0, 181.0]  # invalid coords for placeholder
+
+    result = [float(x) for x in re.sub(regex, "", point).split(" ")]
+
+    return result
 
 
-def first_chars(text, n):
-    return text[:n]
+def get_best_candidate(main, candidates, max_candidates, model):
+    max_len = min(len(candidates), max_candidates)
+    cosine_sims = []
+
+    for candidate in candidates[:max_len]:
+        cosine_value = -1 * math.inf
+        try:  # avoid descriptionless items
+            candidate_sentence = candidate["itemDescription"]["value"]
+            cosine_value = cosine_sim(candidate_sentence, main, model)
+            cosine_sims.append((cosine_value, candidate))
+        except:
+            cosine_sims.append((0, candidate))
+
+    _, best_candidate = max(cosine_sims, key=lambda k: k[0])
+    return best_candidate
 
 
-def nf_to_json(infile="/home/alfredmyrne/kurser/projekt/edan70-project/nf.txt", outfile="json_dict.json"):
-    f = open(infile, 'r')
-    xs = f.read().encode().decode('utf-8').split('<b>')
-    data = []
-    i = 0
+def get_and_save_coords(config):
+    FILENAME_OUT_JSON = config["annotator"]["output_json_file"]
+    FILENAME_IN = config["annotator"]["input_file"]
+    endpoint_url = config["annotator"]["endpoint_url"]
+    user_agent = config["annotator"]["user_agent"]
+    MAX_CANDIDATES = config["annotator"]["max_candidates"]
+    transformer_model = config["annotator"]["transformer_model"]
+    model = SentenceTransformer(transformer_model)
+    debug = config["debug"]
 
-    for x in xs:  # x in xs:
+    sparql_query = """
+                    SELECT ?item ?itemLabel ?itemDescription ?coords WHERE {{
+                    SERVICE wikibase:mwapi {{
+                        bd:serviceParam wikibase:endpoint "www.wikidata.org";
+                        wikibase:api "EntitySearch";
+                        mwapi:search "{}";
+                        mwapi:language "sv".
+                        ?item wikibase:apiOutputItem mwapi:item.
+                        ?num wikibase:apiOrdinal true.
+                    }}
+                    ?item rdfs:label ?itemLabel.
+                    FILTER(LANG(?itemLabel) = "sv" || LANG(?itemLabel) = "[AUTO_LANGUAGE]")
+                    OPTIONAL {{
+                        ?item schema:description ?itemDescription.
+                        FILTER(LANG(?itemDescription) = "sv" || LANG(?itemDescription) = "[AUTO_LANGUAGE]")
+                    }}
+                    ?item wdt:P625 ?coords.
+                    }}
+                    ORDER BY ASC(?num)
+                    LIMIT 20
+                    """
 
-        text = tag_remover(x)
-        # sentence = first_sentence(text)
-        sentence = first_chars(text, 100)
-
-        y = {
-            "text": sentence,
-        }
-
-        data.append(y)
-
-        i += 1
-        if i % 100 == 0:
-            print("iteration: " + str(i))
-
-    with open(outfile, 'w', encoding='utf-8') as f:
-        json.dump(data, f, ensure_ascii=False)
-
-
-def annotate(infile="json_dict.json", outfile="annotated.json"):
+    sparql = SPARQLWrapper(endpoint_url, agent=user_agent)
+    sparql.setReturnFormat(JSON)
 
     n = 0
+    fails = 0
+    with open(FILENAME_OUT_JSON, "w", encoding="utf-8") as json_outfile:
+        with open(FILENAME_IN, encoding="utf-8") as i:
+            json_data = json.load(i)
+            xs = []
 
-    with open(outfile, 'w', encoding='utf8') as o:
+            for entry in json_data:
+                headword = kbb.get_headword(entry["text"])
+                if " l. " in headword:  # disambiguation logic
+                    headword = headword.split(" l. ")[0]
 
-        with open(infile, 'r', encoding='utf8') as i:
+                query = sparql_query.format(headword)
+                sparql.setQuery(query)
+                point = [None, None]
+                qid = name = ""
 
-            data = json.load(i)
+                try:
+                    results = sparql.query().convert()
+                    if results["results"]["bindings"]:
+                        candidates = results["results"]["bindings"]
 
-            res = []
+                        # choose best candidate
+                        top_candidate = get_best_candidate(
+                            entry["text"], 
+                            candidates, 
+                            MAX_CANDIDATES,
+                            model
+                        )
 
-            for entry in data:
-                text = entry['text']
-                is_loc, first_word = is_LOC(text)
+                        point = top_candidate["coords"]["value"]
+                        qid_url = top_candidate["item"]["value"]
 
-                qid = None
-                if is_loc:
-                    qid = wikidata_query.get_qid(first_word, text)
+                        # Match the QID
+                        match = re.search(r"/Q\d+", qid_url)
+                        if match:
+                            qid = match.group(0)[
+                                1:
+                            ]  # Extract the QID without the leading slash
+                        else:
+                            if debug:
+                                print("qid search went wrong...")
 
-                new_entry = {'text': text, "is_loc": is_loc, "qid": qid}
-                res.append(new_entry)
+                        try:
+                            point = point_extract(point)
+                        except:
+                            point = [None, None]
+
+                        name = top_candidate["itemLabel"]["value"]
+                        if debug:
+                            print(f"Found ({name} - {qid} - {point}) for {headword}")
+                    else:
+                        if debug:
+                            print(f"Found nothing for {headword} => {entry['text']}")
+                        fails += 1
+
+                    new_entry = {
+                        "text": entry["text"],
+                        "is_loc": entry["is_loc"],
+                        "qid": qid,
+                        "latitude": point[0],
+                        "longitude": point[1],
+                    }
+                    xs.append(new_entry)
+                except Exception as e:
+                    print("Query execution exception: ", e)
+                    exit()
 
                 n += 1
                 if n % 100 == 0:
-                    print("iteration: " + str(n))
+                    print(n, " iterations", fails, " fails")
+                if n % 1000 == 0:
+                    with open(f"data/part{n}_nf_coords.json", "w") as s:
+                        json.dump(xs, s, ensure_ascii=False)
+            json.dump(xs, json_outfile, ensure_ascii=False)
 
-            json.dump(res, o, ensure_ascii=False)
-
-
-if __name__ == "__main__":
-    # nf_to_json()
-    annotate()
+    print(f"{fails=}")
