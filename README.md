@@ -41,7 +41,7 @@ $ pip install -r requirements.txt
 
 
 ### Usage
-The preferred way to run the program is through the main ```run.py``` and appropriate options flags, as demonstrated below. 
+The preferred way to run the program is through the main ```run.py``` with appropriate options flags, as demonstrated below. 
 ```sh
 $ python run.py [OPTION]
 ```
@@ -63,6 +63,5 @@ options:
 
 
 ## License
-MIT License
-
+CC BY-NC-SA
 ## Acknowledgments
