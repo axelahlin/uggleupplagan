@@ -1,4 +1,4 @@
-# edan70-project
+# Uggleupplagan 
 
 ## Table of Contents
 - [About](#about)
@@ -11,7 +11,8 @@
 - [Acknowledgments](#acknowledgments)
 
 ## About
-
+Source code repository of the paper Mapping the Past: Geographically Linking an Early 20th Century
+Swedish Encyclopedia with Wikidata by Axel Ahlin, Alfred Myrne Blåder and Pierre Nugues.
 
 ## Getting Started
 ### Prerequisites
